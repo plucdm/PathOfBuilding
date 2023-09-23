@@ -203,7 +203,7 @@ skills["ArcaneCloak"] = {
 		duration = true,
 	},
 	baseMods = {
-		mod("GuardAbsorbLimit", "BASE", 100, 0, 0, { type = "PercentStat", stat = "ManaUnreserved", percentVar = "ArcaneCloakConsumedMana" }, { type = "GlobalEffect", effectType = "Guard", unscalable = true }),
+		mod("GuardAbsorbLimit", "BASE", 1, 0, 0, { type = "Multiplier", var = "ArcaneCloakConsumedMana" }, { type = "GlobalEffect", effectType = "Guard", unscalable = true }),
 	},
 	qualityStats = {
 		Default = {
@@ -9320,6 +9320,26 @@ skills["Spark"] = {
 	skillTypes = { [SkillType.Spell] = true, [SkillType.Projectile] = true, [SkillType.ProjectilesFromUser] = true, [SkillType.Damage] = true, [SkillType.Duration] = true, [SkillType.Trappable] = true, [SkillType.Totemable] = true, [SkillType.Mineable] = true, [SkillType.Multicastable] = true, [SkillType.Triggerable] = true, [SkillType.Lightning] = true, [SkillType.CanRapidFire] = true, },
 	statDescriptionScope = "skill_stat_descriptions",
 	castTime = 0.65,
+	preDamageFunc = function(activeSkill, output, breakdown)
+		local skillCfg = activeSkill.skillCfg
+		local skillData = activeSkill.skillData
+		local skillModList = activeSkill.skillModList
+
+		local dmgTickRate = 2 / 3
+
+		local duration = math.ceil(activeSkill.skillData.duration * data.misc.ServerTickRate) / data.misc.ServerTickRate * output.DurationMod
+		
+
+		local numTicks = math.floor(duration / dmgTickRate) -- math.floor(fullDuration / dmgTickRate) --(skillModList:Sum("BASE", skillCfg, "base_skill_effect_duration")) -- / dmgTickRate
+		local dpsMultiplier = numTicks
+
+		if breakdown then
+			breakdown.SkillDPSMultiplier = dpsMultiplier
+		end
+		skillData.dpsMultiplier = dpsMultiplier
+		output.dpsMultiplier = dpsMultiplier
+	
+	end,
 	baseFlags = {
 		spell = true,
 		projectile = true,
